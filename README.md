@@ -290,53 +290,6 @@ The **Cluster Autoscaler** automatically adjusts the size of the cluster when th
 
    This will automatically scale your worker nodes up or down based on the demand.
 
-#### **Configure StatefulSets for Stateful Applications**
-
-For applications requiring persistent storage (like databases), use **StatefulSets** instead of Deployments to ensure pods retain their identity and storage.
-
-1. **Create a MySQL StatefulSet**:
-   Here is an example YAML for deploying MySQL using a StatefulSet:
-   ```yaml
-   apiVersion: apps/v1
-   kind: StatefulSet
-   metadata:
-     name: mysql
-   spec:
-     serviceName: "mysql"
-     replicas: 3
-     selector:
-       matchLabels:
-         app: mysql
-     template:
-       metadata:
-         labels:
-           app: mysql
-       spec:
-         containers:
-         - name: mysql
-           image: mysql:5.7
-           ports:
-           - containerPort: 3306
-           volumeMounts:
-           - name: mysql-storage
-             mountPath: /var/lib/mysql
-     volumeClaimTemplates:
-     - metadata:
-         name: mysql-storage
-       spec:
-         accessModes: ["ReadWriteOnce"]
-         resources:
-           requests:
-             storage: 1Gi
-   ```
-
-2. **Deploy the StatefulSet**:
-   Apply the StatefulSet:
-   ```bash
-   kubectl apply -f mysql-statefulset.yaml
-   ```
-
----
 
 ### **Conclusion**
 
@@ -346,5 +299,4 @@ Guide:
 2. **Deployed a sample application (Nginx)** to verify the setup.
 3. **Optimized the cluster for high availability** by ensuring multi-AZ deployment.
 4. **Configured Horizontal Pod Autoscaling (HPA)** and **Cluster Autoscaler** for scalability.
-5. **Deployed a StatefulSet** for stateful applications like MySQL.
 
