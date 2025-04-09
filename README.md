@@ -151,7 +151,6 @@ Here's a step-by-step guide you can include in your README.md file for executing
 terraform destroy
 ```
 
-osododo
 
 
 ## Section 3: **step-by-step guide** for setting up and optimizing an Amazon EKS Kubernetes cluster on **Windows**:
@@ -165,7 +164,6 @@ Before starting, ensure you have the following tools installed:
 1. **AWS CLI** – AWS Command Line Interface
 2. **eksctl** – Command-line tool for creating EKS clusters
 3. **kubectl** – Kubernetes CLI for interacting with the cluster
-4. **Windows Subsystem for Linux (WSL)** (Optional) – If you'd like to use a Linux-like environment on Windows
 
 
 ### **Create an EKS Cluster**
@@ -300,3 +298,125 @@ Guide:
 3. **Optimized the cluster for high availability** by ensuring multi-AZ deployment.
 4. **Configured Horizontal Pod Autoscaling (HPA)** and **Cluster Autoscaler** for scalability.
 
+osodoo 
+### **Section 4: Automated Deployments with CI/CD**
+
+#### **Task 1: Create a CI/CD Pipeline to Automate Kubernetes Deployment**
+
+To automate the deployment of a sample application to the Kubernetes cluster set up in **Section 3**, we can use a popular CI/CD tool like **GitHub Actions**. Below is a step-by-step guide on how to configure the CI/CD pipeline:
+
+---
+
+### **Step 1: Set Up GitHub Repository**
+
+1. **Create a GitHub Repository:**  
+   - Make sure your application code is in a GitHub repository, including the Kubernetes YAML deployment files and any Dockerfiles for building container images.
+
+2. **Store Kubernetes Configurations:**  
+   - Ensure the Kubernetes configurations (e.g., `nginx-deployment.yaml`, `nginx-service.yaml`, etc.) are inside the repository.
+
+---
+
+### **Step 2: Create a GitHub Actions Workflow File**
+
+1. **Create Workflow Directory:**
+   - In your GitHub repository, create a directory called `.github/workflows`.
+
+2. **Create Workflow File:**  
+   - Inside `.github/workflows/`, create a file called `ci-cd-pipeline.yml` with the following content:
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger on PRs to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Step 3: Login to DockerHub (or any registry)
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build and push Docker image
+      - name: Build and Push Docker image
+        run: |
+          docker build -t yourdockerusername/yourapp:$GITHUB_SHA .
+          docker push yourdockerusername/yourapp:$GITHUB_SHA
+
+      # Step 5: Set up Kubeconfig (Connects GitHub Actions to Kubernetes)
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      # Step 6: Deploy to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/nginx-deployment.yaml
+          kubectl apply -f k8s/nginx-service.yaml
+```
+
+---
+
+### **Step 3: Configure Secrets**
+
+- Add necessary secrets to GitHub Repository for secure access:
+  - **DOCKER_USERNAME:** Your DockerHub username (or any registry username).
+  - **DOCKER_PASSWORD:** Your DockerHub password (or any registry password).
+  - **KUBECONFIG:** Kubernetes configuration to access the EKS cluster. You can set this up using AWS CLI (`aws eks update-kubeconfig --name my-cluster`).
+
+---
+
+### **Step 4: Commit Changes to GitHub**
+
+- Commit the `ci-cd-pipeline.yml` file to your GitHub repository.
+- Whenever you push code to the `main` branch, GitHub Actions will automatically run the CI/CD pipeline.
+
+---
+
+### **Task 2: Implement Automated Testing and Monitoring in CI/CD Pipeline**
+
+Automated testing and monitoring are critical components in ensuring reliable and quality deployments. Here's how you can integrate them into the CI/CD pipeline:
+
+#### **Step 1: Automated Testing**
+
+You can add tests in your pipeline before the deployment step to ensure that the application works as expected.
+
+1. **Unit Tests:**
+   - Use testing frameworks like Jest (for JavaScript) or Pytest (for Python) to write unit tests.
+   - Example in GitHub Actions, add the following before Docker build:
+   ```yaml
+   - name: Run Unit Tests
+     run: |
+       npm install
+       npm test  # Or your specific testing command
+   ```
+
+2. **Integration Tests:**
+   - Deploy a test version of your application and run integration tests to check if services interact as expected.
+   - Example:
+   ```yaml
+   - name: Run Integration Tests
+     run: |
+       npm install
+       npm run integration-tests
+   ```
